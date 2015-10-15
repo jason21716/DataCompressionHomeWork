@@ -1,6 +1,6 @@
 package org.jason.datacompression.alphabet;
 
-public class AlphabetAnalyser {
+class AlphabetAnalyser {
 	private String oreign;
 	private AlphabetMap map;
 	
