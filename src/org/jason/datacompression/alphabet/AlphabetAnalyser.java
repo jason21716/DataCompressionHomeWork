@@ -4,8 +4,7 @@ class AlphabetAnalyser {
 	private String oreign;
 	private AlphabetMap map;
 	
-	public AlphabetAnalyser(String oreign,AlphabetMap map){
-		setString(oreign);
+	public AlphabetAnalyser(AlphabetMap map){
 		setAlphabetMap(map);
 	}
 	
@@ -30,5 +29,10 @@ class AlphabetAnalyser {
 			if(isAlphabet(s))
 				map.addAlphabetCount(s);
 		}
+	}
+	
+	public void analyseString(String oreign){
+		setString(oreign);
+		analyseString();
 	}
 }
