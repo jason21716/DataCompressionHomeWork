@@ -1,7 +1,6 @@
 package org.jason.datacompression.alphabet;
 
 import java.io.*;
-import java.math.*;
 public class AlphabetUI {
 	private BufferedReader txtFileReader;
 	private AlphabetMap map;
