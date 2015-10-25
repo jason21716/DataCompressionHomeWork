@@ -25,6 +25,7 @@ public class JpegHuffmanCode {
 			}catch(NullPointerException e){
 				System.out.println("This application has some wrong.");
 				System.out.println(e.getMessage());
+				e.printStackTrace();
 			}catch(IOException e){
 				System.out.println("The file you want to analyes is not correct.");
 			}
