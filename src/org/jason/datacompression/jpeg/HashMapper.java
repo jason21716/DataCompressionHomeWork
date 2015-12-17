@@ -2,7 +2,7 @@ package org.jason.datacompression.jpeg;
 
 import java.util.HashMap;
 
-class HashMapper {
+public class HashMapper {
 	private int[] grayPixels;
 	public HashMapper(int[] grayPixels) {
 		// TODO Auto-generated constructor stub

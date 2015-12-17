@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
-class HuffmanCoder {
+public class HuffmanCoder {
 	
 	public class HuffmanNode {
 		public int weight;
