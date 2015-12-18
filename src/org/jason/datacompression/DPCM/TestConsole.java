@@ -11,7 +11,7 @@ public class TestConsole {
 		
 		TestingBox[] testCases = {
 			//測試組一、單接口預測器
-			/*
+			
 			new TestingBox
 			(
 					"C:\\Users\\jason\\Desktop\\cameraman_256x256.jpg",
@@ -21,7 +21,25 @@ public class TestConsole {
 					new NoQuantizer(),
 					new MutiLinerProducer()
 			),	
-			
+			new TestingBox
+			(
+					"C:\\Users\\jason\\Desktop\\cameraman_256x256.jpg",
+					"C:\\Users\\jason\\Desktop\\output\\result.tem",
+					"C:\\Users\\jason\\Desktop\\output\\result.jpg",
+					new SingleWayPredictor(1.4),
+					new NoQuantizer(),
+					new MutiLinerProducer()
+			),	
+			new TestingBox
+			(
+					"C:\\Users\\jason\\Desktop\\cameraman_256x256.jpg",
+					"C:\\Users\\jason\\Desktop\\output\\result.tem",
+					"C:\\Users\\jason\\Desktop\\output\\result.jpg",
+					new SingleWayPredictor(0.3),
+					new NoQuantizer(),
+					new MutiLinerProducer()
+			),	
+			/*
 			new TestingBox
 			(
 					"C:\\Users\\jason\\Desktop\\cameraman_256x256.jpg",
@@ -73,6 +91,7 @@ public class TestConsole {
 			),
 			*/
 			//測試組二、雙接口預測器
+			
 			new TestingBox
 			(
 					"C:\\Users\\jason\\Desktop\\cameraman_256x256.jpg",
@@ -82,7 +101,25 @@ public class TestConsole {
 					new NoQuantizer(),
 					new WholeBlockProducer()
 			),
-			
+			new TestingBox
+			(
+					"C:\\Users\\jason\\Desktop\\cameraman_256x256.jpg",
+					"C:\\Users\\jason\\Desktop\\output\\result6.tem",
+					"C:\\Users\\jason\\Desktop\\output\\result6.jpg",
+					new TwoWayPredictor(0.3,0.7),
+					new NoQuantizer(),
+					new WholeBlockProducer()
+			),
+			new TestingBox
+			(
+					"C:\\Users\\jason\\Desktop\\cameraman_256x256.jpg",
+					"C:\\Users\\jason\\Desktop\\output\\result6.tem",
+					"C:\\Users\\jason\\Desktop\\output\\result6.jpg",
+					new TwoWayPredictor(0.7,0.3),
+					new NoQuantizer(),
+					new WholeBlockProducer()
+			),
+			/*
 			new TestingBox
 			(
 					"C:\\Users\\jason\\Desktop\\cameraman_256x256.jpg",
@@ -131,6 +168,36 @@ public class TestConsole {
 					new TwoWayPredictor(0.5,0.5),
 					new MidtreadQuantizer(255,1),
 					new WholeBlockProducer()
+			)*/
+			//測試組三、單接口預測器(統一線性處理)
+			new TestingBox
+			(
+					"C:\\Users\\jason\\Desktop\\cameraman_256x256.jpg",
+					"C:\\Users\\jason\\Desktop\\output\\result12.tem",
+					"C:\\Users\\jason\\Desktop\\output\\result12.jpg",
+					new SingleWayAlongPredictor(1.0),
+					new NoQuantizer(),
+					new LinerProducer()
+			),
+			
+			new TestingBox
+			(
+					"C:\\Users\\jason\\Desktop\\cameraman_256x256.jpg",
+					"C:\\Users\\jason\\Desktop\\output\\result13.tem",
+					"C:\\Users\\jason\\Desktop\\output\\result13.jpg",
+					new SingleWayAlongPredictor(0.6),
+					new NoQuantizer(),
+					new LinerProducer()
+			),
+			
+			new TestingBox
+			(
+					"C:\\Users\\jason\\Desktop\\cameraman_256x256.jpg",
+					"C:\\Users\\jason\\Desktop\\output\\result13.tem",
+					"C:\\Users\\jason\\Desktop\\output\\result13.jpg",
+					new SingleWayAlongPredictor(1.6),
+					new NoQuantizer(),
+					new LinerProducer()
 			)
 		};
 		

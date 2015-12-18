@@ -94,15 +94,18 @@ public class TestingBox {
 				bitForHuffmanTable += Integer.bitCount(s.getKey());
 				bitForHuffmanTable += s.getValue().length();
 			}
-			huffmanFileLength += bitForHuffmanTable/8;
+			long huffmanTotalLength = huffmanFileLength + bitForHuffmanTable/8;
 			
 			long rawSize = ri.getSize();
 			
 			File rawJpgFile = new File(jpegFromPath);
 			long rawJpgSize = rawJpgFile.length();
 						
-			double crWithRow = (double)rawSize / (double)huffmanFileLength;
-			double crWithRowJpg = (double)rawJpgSize / (double)huffmanFileLength;
+			double crWithRow = (double)rawSize / (double)huffmanTotalLength;
+			double crWithRowJpg = (double)rawJpgSize / (double)huffmanTotalLength;
+			System.out.println("Huffman coding Size:" + huffmanFileLength);
+			System.out.println("Huffman table Size:" + bitForHuffmanTable/8);
+			System.out.println("Row pixel Size:" + rawSize);
 			System.out.println("Cr with Row Size:" + crWithRow);
 			System.out.println("Cr with Jpg:" + crWithRowJpg);
 			
