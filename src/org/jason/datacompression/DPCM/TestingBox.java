@@ -47,7 +47,31 @@ public class TestingBox {
 			System.out.println("量化器: " + quantizer.description());
 			System.out.println("處理程序: " + dpcmproducer.description());
 			System.out.println("");	
-			
+			/*
+			//temp test
+			long rxxk0 = 0;
+			long rxxk1 = 0;
+			long rxxk2 = 0;
+			int[][] tempRow = ri.getImageGrayColorSquare();
+			for(int i = 0 ; i < ri.getHeight(); i++)
+				for(int j = 0 ; j < ri.getWeight() ; j++){
+					rxxk0 += tempRow[i][j] * tempRow[i][j];
+				}
+			for(int i = 0 ; i < ri.getHeight()-1; i++)
+				for(int j = 0 ; j < ri.getWeight() ; j++){
+					rxxk1 += tempRow[i][j] * tempRow[i+1][j];
+				}
+			for(int i = 0 ; i < ri.getHeight(); i++)
+				for(int j = 0 ; j < ri.getWeight()-1 ; j++){
+					rxxk2 += tempRow[i][j] * tempRow[i][j+1];
+				}
+			double rankrxxk0 = rxxk0 / (double)(ri.getHeight()*ri.getWeight());
+			double rankrxxk1 = rxxk1 / (double)((ri.getHeight()-1)*ri.getWeight());
+			double rankrxxk2 = rxxk2 / (double)(ri.getHeight()*(ri.getWeight()-1));
+			System.out.println( rankrxxk0+"\t"+rankrxxk1+"\t"+rankrxxk2);
+			System.out.println("==================================================");
+			/**/
+			/**/
 			//DPCM編碼開始
 			dpcmproducer.setRowImage(ri);
 			dpcmproducer.setPredictor(predictor);
@@ -105,6 +129,8 @@ public class TestingBox {
 			double crWithRowJpg = (double)rawJpgSize / (double)huffmanTotalLength;
 			System.out.println("Huffman coding Size:" + huffmanFileLength);
 			System.out.println("Huffman table Size:" + bitForHuffmanTable/8);
+			System.out.println("bits per pixel:" + (double)huffmanFileLength / (double)ri.getSize() * 8);
+			
 			System.out.println("Row pixel Size:" + rawSize);
 			System.out.println("Cr with Row Size:" + crWithRow);
 			System.out.println("Cr with Jpg:" + crWithRowJpg);
@@ -134,7 +160,9 @@ public class TestingBox {
 			double snr;
 			if(sumSingalDiff != 0){
 				snr = (double)sumRowSingal / (double)sumSingalDiff ;
+				
 				System.out.println("SNR:" + snr);
+				System.out.println("SNR(db):" + Math.log10(snr)*10 + "db(s)");
 			}else{
 				System.out.println("SNR:趨近無限大");
 			}
@@ -150,6 +178,7 @@ public class TestingBox {
 				}
 			bi.setRGB(0, 0, ri.getWeight(), ri.getHeight(), resultRGBArr,0, ri.getWeight());
 			ImageIO.write(bi,"jpeg",new File(jpegSavePath)); 
+			/**/
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
