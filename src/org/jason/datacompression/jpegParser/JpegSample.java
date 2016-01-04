@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Vector;
 
-public class Jpeg {
+public class JpegSample {
 /** ************ Main Method *************** */
 /*****************************************************************************
 * Jpeg("Imagefile", Quality, "OutFileName") According to JAVA virtual
@@ -954,8 +954,10 @@ public int[] valACchrominance = { 0x00, 0x01, 0x02, 0x03, 0x11, 0x04, 0x05, 0x21
    0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8,
    0xf9, 0xfa };
 
+@SuppressWarnings("rawtypes")
 public Vector bits;
 
+@SuppressWarnings("rawtypes")
 public Vector val;
 
 /*
