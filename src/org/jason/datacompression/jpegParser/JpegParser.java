@@ -10,7 +10,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 
@@ -19,6 +18,11 @@ import java.util.ArrayList;
  *
  */
 public class JpegParser extends Frame {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	public JpegParser(String inputImagePath ,String outputImagePath, int quality) {
 		// 輸入檔案(inputImage)
@@ -41,15 +45,20 @@ public class JpegParser extends Frame {
 		}
 		
 		//準備輸出
-		File outFile = new File(outputImagePath);
-		FileOutputStream dataOut = null;
+		File outFile;
+		if(outputImagePath != null)
+			outFile = new File(outputImagePath);
+		else
+			outFile = new File(inputImagePath);
+		FileOutputStream fos = null;
 		int fileTextened = 1;
 		
 		while (outFile.exists()) {
 		    outFile = new File(inputImagePath.substring(0, inputImagePath.lastIndexOf(".")) +"_"+ (fileTextened++) + ".jpg");
 		}
+		/*//System.out.println(outFile.getAbsolutePath());/**/
 		try {
-			dataOut = new FileOutputStream(outputImagePath);
+			fos = new FileOutputStream(outFile);
 		} catch (FileNotFoundException e1) {
 			e1.printStackTrace();
 			return;
@@ -58,9 +67,13 @@ public class JpegParser extends Frame {
 		//預讀圖像基本資料
 		int imageWidth = inputImage.getWidth(null);
 		int imageHeight = inputImage.getHeight(null);
+		System.out.println(imageWidth+" "+imageHeight);
+		/*int imageWidth = inputImage.getHeight(null);
+		int imageHeight = inputImage.getWidth(null);*/
 		
 		//產生SOI結構
 		byte[] SOImarker = new byte[]{(byte) 0xFF , (byte) 0xD8};
+		writeMeta(fos,SOImarker);
 		
 		//產生APP0結構
 		byte[] APP0marker = new byte[]{(byte) 0xFF , (byte) 0xE0};
@@ -72,12 +85,14 @@ public class JpegParser extends Frame {
 		byte[] APP0Ydensity = new byte[]{(byte) 0x00 , (byte) 0x48};//Y:72DPI
 		byte APP0Xthumbnail = (byte)0x00;//no thumbnail
 		byte APP0Ythumbnail = (byte)0x00;//no thumbnail
+		writeMeta(fos,APP0marker,APP0length,App0Identifer,APP0Version,new byte[]{APP0Unit},APP0Xdensity,APP0Ydensity,new byte[]{APP0Xthumbnail,APP0Ythumbnail});
 		
 		//產生COM結構
 		byte[] COMmarker = new byte[]{(byte) 0xFF , (byte) 0xFE};
 		byte[] COMLength = new byte[]{(byte) 0x00 , (byte) 0x19};//Length:25
 		byte[] COMcommit = //By jason's JPEG Parser.
 				new byte[]{(byte) 0x42 ,(byte) 0x79 ,(byte) 0x20 ,(byte) 0x6a ,(byte) 0x61 ,(byte) 0x73 ,(byte) 0x6f ,(byte) 0x6e ,(byte) 0x27 ,(byte) 0x73 ,(byte) 0x20 ,(byte) 0x4a ,(byte) 0x50 ,(byte) 0x45 ,(byte) 0x47 ,(byte) 0x20 ,(byte) 0x50 ,(byte) 0x61 ,(byte) 0x72 ,(byte) 0x73 ,(byte) 0x65 ,(byte) 0x72 ,(byte) 0x2e };
+		writeMeta(fos,COMmarker,COMLength,COMcommit);
 		
 		//產生DQT結構(量化表採用Canon 70D JPEG高畫質的量化表)
 		byte[] DQTmarker = new byte[]{(byte) 0xFF , (byte) 0xDB};
@@ -108,6 +123,7 @@ public class JpegParser extends Frame {
 				(byte) 0x05,(byte) 0x05,(byte) 0x05,(byte) 0x05,(byte) 0x05,(byte) 0x05,(byte) 0x05,(byte) 0x05,
 				(byte) 0x05,(byte) 0x05,(byte) 0x05,(byte) 0x05,(byte) 0x05,(byte) 0x05,(byte) 0x05,(byte) 0x05
 			};
+		writeMeta(fos,DQTmarker,DQTLength,new byte[]{DQTQTInfo[0]},DQTQT[0],new byte[]{DQTQTInfo[1]},DQTQT[1]);
 		
 		//產生SOF結構
 		byte[] SOFmarker = new byte[]{(byte) 0xFF , (byte) 0xC0};
@@ -120,11 +136,13 @@ public class JpegParser extends Frame {
 		SOFComponents[0] = new byte[]{(byte) 0x01 , (byte) 0x21 , (byte) 0x00};
 		SOFComponents[1] = new byte[]{(byte) 0x02 , (byte) 0x11 , (byte) 0x01};
 		SOFComponents[2] = new byte[]{(byte) 0x03 , (byte) 0x11 , (byte) 0x01};
-		
+		writeMeta(fos,SOFmarker,SOFLength,new byte[]{SOFPrecision},SOFHeight,SOFWidth,new byte[]{SOFComponentNum},SOFComponents[0],SOFComponents[1],SOFComponents[2]);
+		//writeMeta(fos,SOFmarker,SOFLength,new byte[]{SOFPrecision},SOFWidth,SOFHeight,new byte[]{SOFComponentNum},SOFComponents[0],SOFComponents[1],SOFComponents[2]);
 		//產生DHT結構(Huffman表採用通用表格式)
 		byte[] DHTmarker = new byte[]{(byte) 0xFF , (byte) 0xC4};
-		byte[] DHTLength = new byte[]{(byte) 0x0A , (byte) 0x12};
+		byte[] DHTLength = new byte[]{(byte) 0x01 , (byte) 0xA2};
 		byte[] DHTInformation = new byte[]{(byte) 0x00 , (byte) 0x01 , (byte) 0x10 , (byte) 0x11};
+		writeMeta(fos,DHTmarker,DHTLength);
 		byte[][] DHTNumOfSymble = new byte[4][16];
 		byte[][] DHTSymble = new byte[4][];
 		DHTNumOfSymble[0] = 
@@ -174,6 +192,8 @@ public class JpegParser extends Frame {
 			   (byte)0xc6, (byte)0xc7, (byte)0xc8, (byte)0xc9, (byte)0xca, (byte)0xd2, (byte)0xd3, (byte)0xd4, (byte)0xd5, (byte)0xd6, (byte)0xd7, (byte)0xd8, (byte)0xd9, (byte)0xda, (byte)0xe2,
 			   (byte)0xe3, (byte)0xe4, (byte)0xe5, (byte)0xe6, (byte)0xe7, (byte)0xe8, (byte)0xe9, (byte)0xea, (byte)0xf2, (byte)0xf3, (byte)0xf4, (byte)0xf5, (byte)0xf6, (byte)0xf7, (byte)0xf8,
 			   (byte)0xf9, (byte)0xfa };
+		writeMeta(fos,new byte[]{DHTInformation[0]},DHTNumOfSymble[0] ,DHTSymble[0],new byte[]{DHTInformation[1]},DHTNumOfSymble[1] ,DHTSymble[1],
+				new byte[]{DHTInformation[2]},DHTNumOfSymble[2] ,DHTSymble[2],new byte[]{DHTInformation[3]},DHTNumOfSymble[3] ,DHTSymble[3]);
 		
 		//產生SOS結構
 		byte[] SOSmarker = new byte[]{(byte) 0xFF , (byte) 0xDA};
@@ -184,9 +204,8 @@ public class JpegParser extends Frame {
 		SOSComponents[1] = new byte[]{(byte) 0x02 , (byte) 0x11};
 		SOSComponents[2] = new byte[]{(byte) 0x03 , (byte) 0x11};
 		byte[] SOSIgnorable = new byte[]{(byte) 0x00 , (byte) 0x3F, (byte) 0x00};
-		
-		//產生EOI結構
-		byte[] EOImarker = new byte[]{(byte) 0xFF , (byte) 0xD9};
+		writeMeta(fos,SOSmarker,SOSLength,new byte[]{SOSNumOfComponents},SOSComponents[0],SOSComponents[1],SOSComponents[2],SOSIgnorable);
+
 		
 		//抓取原始圖像
 		int[] values = new int[imageHeight*imageWidth];
@@ -200,15 +219,13 @@ public class JpegParser extends Frame {
 		}
 		
 		//切割圖像(邏輯上的)
-		int blockWidthNum = (imageWidth % 16 == 0) ? imageWidth / 16 : imageWidth / 8 + 1 ;
-		int blockHeightNum = (imageHeight % 16 == 0) ? imageHeight / 16 : imageHeight / 8 + 1 ;
-		Point[] blockPoint = new Point[blockWidthNum * blockHeightNum];
-		int tempBlockPointer = 0;
-		for(int i = 0;i < blockHeightNum ; i++){
-			for(int j = 0;j < blockWidthNum; j++){
+		int blockWidthNum = (imageWidth % 16 == 0) ? imageWidth / 16 : imageWidth / 16 + 1 ;
+		int blockHeightNum = (imageHeight % 16 == 0) ? imageHeight / 16 : imageHeight / 16 + 1 ;
+		Point[][] blockPoint = new Point[blockHeightNum][blockWidthNum];
+		for(int i = 0,ii = 0;i < blockHeightNum ; i++,ii++){
+			for(int j = 0,jj=0;j < blockWidthNum; j++,jj++){
 				Point blockTop = new Point(i*16,j*16);
-				blockPoint[tempBlockPointer] = blockTop;
-				tempBlockPointer++;
+				blockPoint[ii][jj] = blockTop;
 			}
 		}
 		
@@ -225,8 +242,8 @@ public class JpegParser extends Frame {
 				int g = (valueOneRGB >> 8 ) & 0xff;
 				int b = (valueOneRGB      ) & 0xff;
 				Y[i][j] = (float) ((0.299 * r + 0.587 * g + 0.114 * b));
-				Cb[i][j] = 128 + (float) ((-0.16874 * r - 0.33126 * g + 0.5 * b));
-				Cr[i][j] = 128 + (float) ((0.5 * r - 0.41869 * g - 0.08131 * b));
+				Cb[i][j] =(float) ((-0.16874 * r - 0.33126 * g + 0.5 * b))+128;
+				Cr[i][j] =(float) ((0.5 * r - 0.41869 * g - 0.08131 * b))+128;
 				tempYCCPoint++;
 			}
 		}
@@ -234,6 +251,7 @@ public class JpegParser extends Frame {
 		components[0] = Y;
 		components[1] = Cb;
 		components[2] = Cr;
+		
 		
 		//準備HuffmanTable
 		int[][] DCMatrix_0 = new int[12][2]; //Y專用  [i][0] code  [i][1] length 
@@ -265,21 +283,36 @@ public class JpegParser extends Frame {
 					sizeNowCap = 0;
 					bit++;
 					bit <<= 1;
+					if(sizePointer != 16)
+					while(DHTNumOfSymble[i][sizePointer] == 0){
+						sizePointer++;
+						bit <<= 1;
+						if(sizePointer == 15)
+							break;
+					}
 				}else{
 					bit++;
 				}
 			}
 		}
 		
+		//TODO:need to remove
+		for(int[] i: DCMatrix_0){
+			System.out.printf("%s\n",Integer.toBinaryString(i[0]));
+		}
+		
 		//準備迴圈內會使用到的廣域變數
 		int[] DPCMPreValue = new int[]{0,0,0,0};
-		int bufferBits;
-		int bufferPutBuffer;
+		String byteSimlation = "";
 		
-		//以迴圈讀取Blocks
-		for(Point tempBP : blockPoint){
+		//以迴圈讀取BlocksLine
+		for(Point[] tempBPLine : blockPoint){
 			//422模式必須要分上下兩半操作
 			for(int tempBPRound = 1 ; tempBPRound <= 2 ; tempBPRound++){
+			//以行為單位依序進行
+			for(Point tempBP : tempBPLine){
+			
+			
 				//準備抽樣後區塊
 				double[][] blocky1 = new double[8][8];
 				double[][] blocky2 = new double[8][8];
@@ -293,24 +326,31 @@ public class JpegParser extends Frame {
 				int maxX1 , maxY1 , maxX2 , maxY2;
 				blocky1StartPoint = (tempBPRound == 1) ? new Point(tempBP.x , tempBP.y) : new Point(tempBP.x + 8, tempBP.y);
 				blocky2StartPoint = (tempBPRound == 1) ? new Point(tempBP.x , tempBP.y + 8) : new Point(tempBP.x + 8, tempBP.y + 8);
-				maxX1 = (blocky1StartPoint.x + 7 <= imageHeight) ? blocky1StartPoint.x + 7 : imageHeight ; 
-				maxX2 = (blocky2StartPoint.x + 7 <= imageHeight) ? blocky2StartPoint.x + 7 : imageHeight ; 
-				maxY1 = (blocky1StartPoint.y + 7 <= imageWidth) ? blocky1StartPoint.y + 7 : imageWidth ; 
-				maxY2 = (blocky2StartPoint.y + 7 <= imageWidth) ? blocky2StartPoint.y + 7 : imageWidth ; 
+				if(blocky1StartPoint.getX() >= imageHeight || blocky1StartPoint.getY() >= imageWidth)
+					continue;
+				maxX1 = (blocky1StartPoint.x + 7 < imageHeight) ? blocky1StartPoint.x + 7 : imageHeight -1; 
+				maxX2 = (blocky2StartPoint.x + 7 < imageHeight) ? blocky2StartPoint.x + 7 : imageHeight -1; 
+				maxY1 = (blocky1StartPoint.y + 7 < imageWidth) ? blocky1StartPoint.y + 7 : imageWidth -1; 
+				maxY2 = (blocky2StartPoint.y + 7 < imageWidth) ? blocky2StartPoint.y + 7 : imageWidth -1; 
+				//TODO:need to remove
+				System.out.printf("(%d,%d)  (%d,%d)\t(%d,%d)  (%d,%d)\n",(int)blocky1StartPoint.getX(),(int)blocky1StartPoint.getY(),maxX1,maxY1,(int)blocky2StartPoint.getX(),(int)blocky2StartPoint.getY(),maxX2,maxY2);
 				
 				//開始取樣
-				for(int i = blocky1StartPoint.x ; i <= maxX1 ; i++){
-					for(int j = blocky1StartPoint.y ; j <= maxY1 ; j++){
-						blocky1[i][j] = ((float[][])(components[0]))[i][j] - 128;
-						blockcb[i][j] = ((float[][])(components[1]))[i][j] - 128;
-						blockcr[i][j] = ((float[][])(components[2]))[i][j] - 128;
+				for(int i = blocky1StartPoint.x,ii=0; i <= maxX1 ; i++,ii++){
+					for(int j = blocky1StartPoint.y,jj=0; j <= maxY1 ; j++,jj++){
+						blocky1[ii][jj] = ((float[][])(components[0]))[i][j] - 128;
+						blockcb[ii][jj] = ((float[][])(components[1]))[i][j] - 128;
+						blockcr[ii][jj] = ((float[][])(components[2]))[i][j] - 128;
 					}
 				}
-				for(int i = blocky2StartPoint.x ; i <= maxX2 ; i++){
-					for(int j = blocky2StartPoint.y ; j <= maxY2 ; j++){
-						blocky2[i][j] = ((float[][])(components[0]))[i][j] - 128;
+				
+				for(int i = blocky2StartPoint.x,ii=0 ; i <= maxX2 ; i++,ii++){
+					for(int j = blocky2StartPoint.y,jj=0; j <= maxY2 ; j++,jj++){
+						blocky2[ii][jj] = ((float[][])(components[0]))[i][j] - 128;
 					}
 				}	
+				
+
 				
 				//DCT
 				double[][] dctMatrix = new double[][]{
@@ -376,6 +416,8 @@ public class JpegParser extends Frame {
 					}
 				}
 				
+				
+				
 				//量化
 				int[][] luminanceQuantizationTable = new int[][]{
 					{1,   1,   1,   1,   1,   2,   3,   3},{1,   1,   1,   1,   1,   3,   3,   3},
@@ -402,17 +444,46 @@ public class JpegParser extends Frame {
 		                           .setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
 					}
 				}
+
 				
 				//編碼
 				for(int tempblockCoding = 0 ; tempblockCoding <= 3 ; tempblockCoding++){
+					//TODO:need to remove
+					System.out.println("==>"+tempblockCoding);
+					
 					//DC
 					int DCvalue = blockBeforeEncode[tempblockCoding][0][0];
-					int AfterDPCMDC = DCvalue - DPCMPreValue[tempblockCoding];
-					DPCMPreValue[tempblockCoding] = DCvalue;
-					int DClength = Integer.bitCount(AfterDPCMDC);
-					int DCcode = (tempblockCoding < 2) ? Huffmantable[0][DClength][0] : Huffmantable[1][DClength][0];
-					int DCcodelength = (tempblockCoding < 2) ? Huffmantable[0][DClength][1] : Huffmantable[1][DClength][1];
+					int AfterDPCMDC;
+					if(tempblockCoding < 2){
+						AfterDPCMDC = DCvalue - DPCMPreValue[1];
+						DPCMPreValue[1] = DCvalue;
+					}
+					else{
+						AfterDPCMDC = DCvalue - DPCMPreValue[tempblockCoding];
+						DPCMPreValue[tempblockCoding] = DCvalue;
+					}
+					int tempPlusAfterDPCMDC = Math.abs(AfterDPCMDC);
+					int DClength = Integer.toBinaryString(tempPlusAfterDPCMDC).length();
 					
+					if(AfterDPCMDC == 0)
+						DClength = 0;
+					int DCcode = (tempblockCoding < 2) ? Huffmantable[0][DClength][0] : Huffmantable[1][DClength][0];
+					int DCcodeLength = (tempblockCoding < 2) ? Huffmantable[0][DClength][1] : Huffmantable[1][DClength][1];
+					
+					if(AfterDPCMDC < 0){
+						AfterDPCMDC = ~(tempPlusAfterDPCMDC);
+					}
+					String DCcodeString = Integer.toBinaryString(DCcode);
+					if(DCcodeString.length() < DCcodeLength){
+						DCcodeString = "0" + DCcodeString;
+					}
+					String DPCMString = Integer.toBinaryString(AfterDPCMDC);
+					DPCMString = DPCMString.substring(DPCMString.length()-DClength);
+					String DCString = DCcodeString + DPCMString;
+					//TODO:need to remove(x3)
+					System.out.println("DC:");
+					System.out.println(DCcodeString+" "+DPCMString);
+					System.out.println("AC:");
 					//AC
 					int[] zigzag = new int[]{1, 8, 16, 9, 2, 3, 10, 17, 24, 32, 25, 18, 11, 4, 5, 12, 19, 26, 33, 40,
 							48, 41, 34, 27, 20, 13, 6, 7, 14, 21, 28, 35, 42, 49, 56, 57, 50, 43, 36,
@@ -439,26 +510,121 @@ public class JpegParser extends Frame {
 					if(zeroLength != 0)
 						AClist.add(new Integer[]{0,0});
 					
-					ArrayList<Integer[]> AClist2 = new ArrayList<Integer[]>();
+					ArrayList<String> AClist2 = new ArrayList<String>();
 					for(Integer[] tempV : AClist){
-						while(tempV[0] > 16){
-							int zerolength = (16 << 4) + Integer.bitCount(0);
+						String ACcodec;
+						if(tempV[0]==0 && tempV[1]==0){
+							ACcodec = (tempblockCoding < 2) ? "1010" : "00";
+							//TODO:need to remove
+							System.out.println(ACcodec+" (EOB)");
+						}else{
+							while(tempV[0] > 15){
+								int zerolength = (15 << 4);
+								int code = (tempblockCoding < 2) ? Huffmantable[2][zerolength][0] : Huffmantable[3][zerolength][0];
+								ACcodec = String.format("%s", Integer.toBinaryString(code));
+								AClist2.add(ACcodec);
+								tempV[0] -= 16;
+							}
+							int ACplusvar = Math.abs(tempV[1]);
+							int ACplusvarlength = Integer.toBinaryString(ACplusvar).length();
+							int zerolength = (tempV[0] << 4) + ACplusvarlength;
 							int code = (tempblockCoding < 2) ? Huffmantable[2][zerolength][0] : Huffmantable[3][zerolength][0];
-							int codelength = (tempblockCoding < 2) ? Huffmantable[2][zerolength][1] : Huffmantable[3][zerolength][1];
-							AClist2.add(new Integer[]{code,codelength,0});
-							tempV[0] -= 17;
+							
+							if(tempV[1] < 0){
+								tempV[1] = ~(ACplusvar);
+							}
+							String codeString = Integer.toBinaryString(code);
+							if(codeString.length() <= 1){
+								codeString = "0" + codeString;
+							}
+							String varString = Integer.toBinaryString(tempV[1]);
+							varString = varString.substring(varString.length() - ACplusvarlength);
+							ACcodec = codeString + varString;
+							//TODO:need to remove
+							System.out.println(codeString+" "+varString);
 						}
-						int zerolength = (tempV[0] << 4) + Integer.bitCount(tempV[1]);
-						int code = (tempblockCoding < 2) ? Huffmantable[2][zerolength][0] : Huffmantable[3][zerolength][0];
-						int codelength = (tempblockCoding < 2) ? Huffmantable[2][zerolength][1] : Huffmantable[3][zerolength][1];
-						AClist2.add(new Integer[]{code,codelength,tempV[1]});
+						AClist2.add(ACcodec);
+						
+					}
+					
+					//寫入資訊
+					byteSimlation += DCString;
+					if(byteSimlation.length() > 8){
+						byte unitValueByte = (byte) Integer.parseInt(byteSimlation.substring(0, 8) , 2);
+						try {
+							fos.write(unitValueByte);
+							if(unitValueByte == (byte)0xFF){
+								fos.write((byte)0x00);
+							}
+								
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+						byteSimlation = byteSimlation.substring(8);
+					}
+					for(String t : AClist2){
+						byteSimlation += t;
+						if(byteSimlation.length() > 8){
+							byte unitValueByte = (byte) Integer.parseInt(byteSimlation.substring(0, 8) , 2);
+							try {
+								fos.write(unitValueByte);
+								if(unitValueByte == (byte)0xFF){
+									fos.write((byte)0x00);
+								}
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							byteSimlation = byteSimlation.substring(8);
+						}
 					}
 				}
+				
+				
 			}
 			
+			
+		}}
+		//MCUs結束，將buffer清空
+		while(byteSimlation.length() >= 8){
+			byte unitValueByte = (byte) Integer.parseInt(byteSimlation.substring(0, 8) , 2);
+			try {
+				fos.write(unitValueByte);
+				if(unitValueByte == (byte)0xFF){
+					fos.write((byte)0x00);
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			byteSimlation = byteSimlation.substring(8);
 		}
 		
-		/**/
+		//MCUs結束時補齊byte
+		if(byteSimlation.length() != 0){
+			byteSimlation += "11111111";
+			byte unitValueByte = (byte) Integer.parseInt(byteSimlation.substring(0, 8) , 2);
+			try {
+				fos.write(unitValueByte);
+				if(unitValueByte == (byte)0xFF){
+					fos.write((byte)0x00);
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			byteSimlation = "";
+		}
+		
+		
+		//產生EOI結構
+		byte[] EOImarker = new byte[]{(byte) 0xFF , (byte) 0xD9};
+		writeMeta(fos,EOImarker);
+		
+		//檔案結束
+		try {
+			fos.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 	
@@ -469,15 +635,29 @@ public class JpegParser extends Frame {
 	 * @param args[2] 檔案品質(0-1的整數)
 	 */
 	public static void main(String[] args) {
-		new JpegParser(args[0],null,0);
-		
+		if(args.length == 3)
+			new JpegParser(args[0],args[1],0);
+		else
+			new JpegParser(args[0],null,0);
 	}
-	private void writeFile(OutputStream out, byte[]... t){
-		try {
-			for(byte[] i : t)
+	
+	private void writeMeta(FileOutputStream out, byte[]... t){
+		for(byte[] i :t){
+			try {
 				out.write(i);
-		} catch (IOException e) {
-			System.out.println("IO Error: " + e.getMessage());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	private void writeMeta(FileOutputStream out, byte... t){
+		for(byte i : t){
+			try {
+				out.write(i);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 }

@@ -761,7 +761,7 @@ public double[][] forwardDCT(float input[][]) {
 
    }
  }
-
+ 
  for (i = 0; i < 8; i++) {
    tmp0 = output[i][0] + output[i][7];
    tmp7 = output[i][0] - output[i][7];
@@ -841,7 +841,7 @@ public double[][] forwardDCT(float input[][]) {
    output[1][i] = z11 + z4;
    output[7][i] = z11 - z4;
  }
-
+ 
  return output;
 }
 
