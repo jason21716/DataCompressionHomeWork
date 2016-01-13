@@ -10,7 +10,7 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
-class RowImageGenerator {
+public class RowImageGenerator {
 	private File imageFile;
 	private Color[] imageRGBColor;
 	private Color[][] imageRGBColorSquare;
@@ -33,9 +33,10 @@ class RowImageGenerator {
 	
 	private void imageLoader(File sf) throws IOException{
 		ImageInputStream iis = ImageIO.createImageInputStream(sf);
-		
+		String extension = sf.getName().substring( sf.getName().lastIndexOf(".")+1 );
+		System.out.println(extension);
 		@SuppressWarnings("rawtypes")
-			Iterator readers = ImageIO.getImageReadersByFormatName("jpg");
+			Iterator readers = ImageIO.getImageReadersByFormatName(extension);
 		ImageReader reader = (ImageReader)readers.next();
 		reader.setInput(iis);
 		
