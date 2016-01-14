@@ -34,7 +34,7 @@ public class RowImageGenerator {
 	private void imageLoader(File sf) throws IOException{
 		ImageInputStream iis = ImageIO.createImageInputStream(sf);
 		String extension = sf.getName().substring( sf.getName().lastIndexOf(".")+1 );
-		System.out.println(extension);
+		//System.out.println(extension);
 		@SuppressWarnings("rawtypes")
 			Iterator readers = ImageIO.getImageReadersByFormatName(extension);
 		ImageReader reader = (ImageReader)readers.next();
