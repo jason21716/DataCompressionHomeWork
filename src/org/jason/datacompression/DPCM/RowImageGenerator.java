@@ -10,7 +10,7 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
-class RowImageGenerator {
+public class RowImageGenerator {
 	private File imageFile;
 	private Color[] imageRGBColor;
 	private Color[][] imageRGBColorSquare;
